@@ -2,11 +2,11 @@
 
   <div class="array">
     <div *ngFor="let num of currentState.array; let i = index"
-         class="bar"
-         [style.height]="num * 20 + 'px'"
-         [class.current]="i === currentState.currentIndex"
-         [class.compare]="i === currentState.compareIndex"
-         [class.found]="i === currentState.foundIndex">
+        class="bar"
+        [class.current]="i === currentState.currentIndex"
+        [class.compare]="i === currentState.compareIndex"
+        [class.found]="i === currentState.foundIndex"
+        [style.height.%]="(num / maxValue) * 100">
       {{ num }}
     </div>
   </div>

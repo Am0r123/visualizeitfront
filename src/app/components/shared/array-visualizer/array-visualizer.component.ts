@@ -83,4 +83,10 @@ export class ArrayVisualizerComponent implements OnDestroy {
       this.currentState = this.steps[this.currentStepIndex];
     }
   }
+  get maxValue(): number {
+    return this.currentState.array && this.currentState.array.length
+          ? Math.max(...this.currentState.array)
+          : 1;
+  }
+
 }

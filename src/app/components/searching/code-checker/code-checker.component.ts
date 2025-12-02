@@ -36,36 +36,29 @@ export class CodeCheckerComponent {
     });
   }
 
-  verifyCode() {
-    if (!this.detectedLanguage) {
-      this.detectLanguage();
-    }
+verifyCode() {
+  this.loading = true;
 
-    this.loading = true;
-    this.CodeCheckerService.verifyCode(this.code,this.detectedLanguage).subscribe({
+  this.CodeCheckerService.verifyCode(this.code, this.detectedLanguage)
+    .subscribe({
       next: res => {
         this.lastVerify = res;
-        // map errors to array of line numbers for the visualizer
-        this.errorLines = (res.errors || []).map((e:any) => e.line).filter((ln:number)=>ln>0);
-        // If it's a search algorithm prompting, try to find a numeric target in code comments or ask user — fallback null
-        // For demo, if target found like "target = 7" in code, set searchTarget
-        const targetMatch = this.code.match(/target\s*=\s*(\d+)/i);
-        if (targetMatch) {
-          this.searchTarget = Number(targetMatch[1]);
-        } else {
-          this.searchTarget = null;
+
+        this.errorLines = (res.errors || []).map((e:any) => e.line);
+
+        // Prevent visualization if code is clearly invalid
+        if (res.percentCorrect < 50 || res.errors?.length > 0) {
+          alert("Your code has issues. Please fix them before visualizing.");
+          this.loading = false;
+          return;
         }
 
-        // even if code had errors, still pass it to the visualizer
-        this.loading = false;
         this.execute();
-      },
-      error: err => {
-        console.error(err);
         this.loading = false;
       }
     });
-  }
+}
+
 
   execute() {
     this.CodeCheckerService.execute(this.code, this.visualArray).subscribe({
