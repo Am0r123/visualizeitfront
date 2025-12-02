@@ -1,0 +1,42 @@
+<div class="visualizer">
+
+  <div class="array">
+    <div *ngFor="let num of currentState.array; let i = index"
+         class="bar"
+         [style.height]="num * 20 + 'px'"
+         [class.current]="i === currentState.currentIndex"
+         [class.compare]="i === currentState.compareIndex"
+         [class.found]="i === currentState.foundIndex">
+      {{ num }}
+    </div>
+  </div>
+
+  <div class="status-row">
+    <div *ngIf="percentCorrect !== null">Correctness: {{ percentCorrect }}%</div>
+    <div *ngIf="errorLines?.length">Error lines: {{ errorLines.join(', ') }}</div>
+  </div>
+
+  <pre class="code-block">
+    <ng-container *ngFor="let line of code.split('\n'); let i = index">
+      <div class="code-line"
+          [class.highlight]="i + 1 === currentState.line"
+          [class.error-line]="errorLines.includes(i + 1)">
+        {{ line }}
+        <span *ngIf="errorLines.includes(i + 1)" class="errmark">⛔</span>
+      </div>
+    </ng-container>
+  </pre>
+
+  <div class="controls">
+    <button (click)="play()" [disabled]="isPlaying">▶️ Play</button>
+    <button (click)="pause()" [disabled]="!isPlaying || isPaused">⏸ Pause</button>
+    <button (click)="resume()" [disabled]="!isPaused">🔁 Resume</button>
+    <button (click)="previousStep()" [disabled]="currentStepIndex <= 0">⏮ Previous Step</button>
+    <button (click)="nextStep()" [disabled]="currentStepIndex >= steps.length - 1">⏭ Next Step</button>
+    <div class="speed-control">
+      <label>Speed:</label>
+      <input type="range" min="1" max="10" [value]="speedMultiplier" (input)="changeSpeed($event.target.value)">
+      <span>{{ speedMultiplier }}x</span>
+    </div>
+  </div>
+</div>
