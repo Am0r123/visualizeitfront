@@ -5,7 +5,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { TranslatorComponent } from './components/translator/translator.component';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
 import { CommonModule } from '@angular/common';
@@ -18,6 +18,7 @@ import { LinearSearchComponent } from './components/searching/linear-search/line
 import { ArrayVisualizerComponent } from './components/shared/array-visualizer/array-visualizer.component';
 import { SharedModule } from './components/shared/shared.module';
 import { SearchingModule } from './components/searching/searching.module';
+import { LoaderInterceptor } from './interceptors/loader.interceptor';
 
 @NgModule({
   declarations: [
@@ -44,7 +45,13 @@ import { SearchingModule } from './components/searching/searching.module';
       preventDuplicates: true,
     }),
   ],
-  providers: [],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: LoaderInterceptor,
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

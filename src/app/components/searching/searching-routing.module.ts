@@ -1,10 +1,13 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { LinearSearchComponent } from './linear-search/linear-search.component';
-import { CodeCheckerComponent } from './code-checker/code-checker.component';
+import { ArrayVisualizerComponent } from '../shared/array-visualizer/array-visualizer.component';
+import { CompareComponent } from '../shared/compare/compare.component';
 
 const routes: Routes = [
-  { path: '', component: CodeCheckerComponent },
+  { path: '', component: ArrayVisualizerComponent },
+  { path: 'custom', component: ArrayVisualizerComponent },
+  { path: 'compare', component: CompareComponent },
   { path: 'linear-search', component: LinearSearchComponent }
 ];
 

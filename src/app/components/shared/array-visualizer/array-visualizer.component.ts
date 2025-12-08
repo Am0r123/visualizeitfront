@@ -1,21 +1,33 @@
 import { Component, Input, OnDestroy } from '@angular/core';
 import { CodeCheckerService } from 'src/app/services/codechecker/codechecker.service';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-array-visualizer',
   templateUrl: './array-visualizer.component.html',
-  styleUrls: ['./array-visualizer.component.scss']
+  styleUrls: ['./array-visualizer.component.scss'],
 })
 export class ArrayVisualizerComponent implements OnDestroy {
-
-  @Input() steps: any[] = [];
-  @Input() percentCorrect: number | null = null;
-  @Input() errorLines: number[] = [];
-
   @Input() array: number[] = [];
   @Input() code: string = '';
-  @Input() isSorting: boolean = true;
-  @Input() target: number | null = null;
+  @Input() compareMode = false;
+  steps: any[] = [];
+  percentCorrect: number | null = null;
+  errorLines: number[] = [];
+  isSorting: boolean = true;
+  target: number | null = null;
+
+  detectedLanguage: string | null = null;
+  loading = false;
+  lastVerify: any = null;
+  visualArray: number[] = [4, 1, 9, 7];
+  isSortingMode = false;
+
+  private codeUpdate = new Subject<string>();
+  private codeSubscription: Subscription;
+  isVisualizing = false;
 
   currentStepIndex = 0;
   interval: any;
@@ -29,11 +41,132 @@ export class ArrayVisualizerComponent implements OnDestroy {
     line: null,
     currentIndex: null,
     compareIndex: null,
-    foundIndex: null
+    foundIndex: null,
   };
+  complexityTime: string | null = null;
+  complexitySpace: string | null = null;
+
+  constructor(
+    private CodeCheckerService: CodeCheckerService,
+    private router: Router
+  ) {
+    this.codeSubscription = this.codeUpdate
+      .pipe(debounceTime(5000), distinctUntilChanged())
+      .subscribe(() => {
+        if (this.code.trim().length > 0) {
+          this.detectLanguageAndVerify();
+        } else {
+          this.resetStatus();
+        }
+      });
+  }
 
   ngOnDestroy() {
     clearInterval(this.interval);
+    this.codeSubscription.unsubscribe();
+  }
+
+  onCodeChange() {
+    this.codeUpdate.next(this.code);
+  }
+
+  detectLanguageAndVerify() {
+    this.loading = true;
+    this.lastVerify = null;
+
+    this.CodeCheckerService.detectLanguage(this.code).subscribe({
+      next: (res) => {
+        this.detectedLanguage = res.language;
+        this.isSortingMode = this.guessIsSorting(
+          this.code,
+          this.detectedLanguage
+        );
+        this.performCodeVerification();
+        this.getComplexity();
+      },
+      error: (err) => {
+        console.error('Language detection failed', err);
+        this.detectedLanguage = null;
+        this.loading = false;
+      },
+    });
+  }
+
+  private performCodeVerification() {
+    if (!this.detectedLanguage) {
+      this.loading = false;
+      return;
+    }
+
+    this.CodeCheckerService.verifyCode(
+      this.code,
+      this.detectedLanguage
+    ).subscribe({
+      next: (res) => {
+        this.lastVerify = res;
+        this.errorLines = (res.errors || []).map((e: any) => e.line);
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Verification failed', err);
+        this.loading = false;
+      },
+    });
+  }
+
+  verifyAndStartVisualization() {
+    // if (
+    //   this.lastVerify?.percentCorrect < 50 ||
+    //   this.lastVerify?.errors?.length > 0
+    // ) {
+    //   alert('Your code has issues. Please fix them before visualizing.');
+    //   return;
+    // }
+    if (!this.detectedLanguage || this.code.trim().length === 0) {
+      alert(
+        'Please paste valid code and wait for language detection/verification.'
+      );
+      return;
+    }
+
+    this.execute();
+    this.isVisualizing = true;
+  }
+
+  resetVisualization() {
+    this.isVisualizing = false;
+    this.isPlaying = false;
+    this.isPaused = false;
+    this.steps = [];
+    this.currentStepIndex = 0;
+    this.currentState = {
+      array: [...this.visualArray],
+      line: null,
+      currentIndex: null,
+      compareIndex: null,
+      foundIndex: null,
+    };
+    clearInterval(this.interval);
+  }
+
+  private resetStatus() {
+    this.detectedLanguage = null;
+    this.lastVerify = null;
+    this.errorLines = [];
+    this.loading = false;
+  }
+
+  execute() {
+    this.CodeCheckerService.execute(this.code, this.visualArray).subscribe({
+      next: (res) => {
+        this.steps = res.steps;
+        if (this.steps.length > 0) {
+          this.currentState = this.steps[0];
+        }
+        this.play();
+      },
+      error: (err) => console.error(err),
+    });
   }
   play() {
     if (!this.steps.length) {
@@ -59,13 +192,21 @@ export class ArrayVisualizerComponent implements OnDestroy {
     }, this.playSpeed);
   }
 
-  pause() { this.isPaused = true; }
-  resume() { this.isPaused = false; }
+  pause() {
+    this.isPaused = true;
+  }
+  resume() {
+    this.isPaused = false;
+  }
 
-  changeSpeed(speed: number) {
-    this.speedMultiplier = +speed;
+  changeSpeed(event: any) {
+    const value = +event.target.value;
+    this.speedMultiplier = value;
     this.playSpeed = 1000 / this.speedMultiplier;
-    if (this.isPlaying && !this.isPaused) this.startAnimation();
+
+    if (this.isPlaying && !this.isPaused) {
+      this.startAnimation();
+    }
   }
 
   nextStep() {
@@ -85,8 +226,40 @@ export class ArrayVisualizerComponent implements OnDestroy {
   }
   get maxValue(): number {
     return this.currentState.array && this.currentState.array.length
-          ? Math.max(...this.currentState.array)
-          : 1;
+      ? Math.max(...this.currentState.array)
+      : 1;
   }
 
+  onSearchComplete(foundIndex: number) {
+    console.log('search complete, found index:', foundIndex);
+  }
+
+  private guessIsSorting(code: string, language: string | null): boolean {
+    const lower = code.toLowerCase();
+    return /sort|swap|bubble|insertion|merge/.test(lower);
+  }
+  toggleCompare() {
+    this.router.navigate(['/compare'], {
+      queryParams: {
+        leftArray: JSON.stringify(this.array),
+        leftCode: this.code,
+        rightArray: JSON.stringify(this.visualArray),
+        rightCode: this.code,
+      },
+    });
+  }
+
+  getComplexity() {
+    this.CodeCheckerService.getComplexity(this.code).subscribe({
+      next: (res) => {
+        const full = res.complexity || '';
+        const timeMatch = full.match(/Time Complexity:\s*([^\s]+)\s*/);
+        const spaceMatch = full.match(/Space Complexity:\s*([^\s]+)/);
+
+        this.complexityTime = timeMatch ? timeMatch[1] : null;
+        this.complexitySpace = spaceMatch ? spaceMatch[1] : null;
+      },
+      error: (err) => console.error(err),
+    });
+  }
 }
