@@ -163,7 +163,6 @@ export class ArrayVisualizerComponent implements OnDestroy {
         if (this.steps.length > 0) {
           this.currentState = this.steps[0];
         }
-        this.play();
       },
       error: (err) => console.error(err),
     });
