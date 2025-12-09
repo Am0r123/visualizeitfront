@@ -43,8 +43,7 @@ export class ArrayVisualizerComponent implements OnDestroy {
     compareIndex: null,
     foundIndex: null,
   };
-  complexityTime: string | null = null;
-  complexitySpace: string | null = null;
+  complexity: string | null = null;
 
   constructor(
     private CodeCheckerService: CodeCheckerService,
@@ -242,8 +241,6 @@ export class ArrayVisualizerComponent implements OnDestroy {
       queryParams: {
         leftArray: JSON.stringify(this.array),
         leftCode: this.code,
-        rightArray: JSON.stringify(this.visualArray),
-        rightCode: this.code,
       },
     });
   }
@@ -251,12 +248,7 @@ export class ArrayVisualizerComponent implements OnDestroy {
   getComplexity() {
     this.CodeCheckerService.getComplexity(this.code).subscribe({
       next: (res) => {
-        const full = res.complexity || '';
-        const timeMatch = full.match(/Time Complexity:\s*([^\s]+)\s*/);
-        const spaceMatch = full.match(/Space Complexity:\s*([^\s]+)/);
-
-        this.complexityTime = timeMatch ? timeMatch[1] : null;
-        this.complexitySpace = spaceMatch ? spaceMatch[1] : null;
+        this.complexity = res.complexity || '';
       },
       error: (err) => console.error(err),
     });

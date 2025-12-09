@@ -121,12 +121,8 @@
 
         <div class="status-box" *ngIf="isVisualizing">
           <h4>Visualization Status</h4>
-          <div class="status-item" *ngIf="complexityTime">
-            Time Complexity: <strong>{{ complexityTime }}</strong>
-          </div>
-
-          <div class="status-item" *ngIf="complexitySpace">
-            Space Complexity: <strong>{{ complexitySpace }}</strong>
+          <div class="status-item" *ngIf="complexity">
+            <strong>{{ complexity }}</strong>
           </div>
 
           <div class="status-item">

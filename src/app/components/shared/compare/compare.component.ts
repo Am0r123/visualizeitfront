@@ -1,4 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-compare',
@@ -6,12 +7,24 @@ import { Component, Input, OnInit } from '@angular/core';
   styleUrls: ['./compare.component.scss'],
 })
 export class CompareComponent implements OnInit {
-  @Input() leftArray: number[] = [];
-  @Input() rightArray: number[] = [];
-  @Input() leftCode: string = '';
-  @Input() rightCode: string = '';
 
-  constructor() {}
+  leftArray: number[] = [];
+  rightArray: number[] = [];
+  leftCode: string = '';
+  rightCode: string = '';
 
-  ngOnInit(): void {}
+  constructor(private route: ActivatedRoute) {}
+
+  ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['leftArray']) {
+        this.leftArray = JSON.parse(params['leftArray']);
+      }
+      if (params['rightArray']) {
+        this.rightArray = JSON.parse(params['rightArray']);
+      }
+      this.leftCode = params['leftCode'] || '';
+      this.rightCode = params['rightCode'] || '';
+    });
+  }
 }
