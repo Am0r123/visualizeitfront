@@ -59,7 +59,10 @@ export class ArrayVisualizerComponent implements OnDestroy {
         }
       });
   }
-
+  ngOnInit() {
+    if(this.code.trim().length > 0) 
+      this.detectLanguageAndVerify();
+  }
   ngOnDestroy() {
     clearInterval(this.interval);
     this.codeSubscription.unsubscribe();
@@ -67,6 +70,7 @@ export class ArrayVisualizerComponent implements OnDestroy {
 
   onCodeChange() {
     this.codeUpdate.next(this.code);
+    this.detectLanguageAndVerify();
   }
 
   detectLanguageAndVerify() {

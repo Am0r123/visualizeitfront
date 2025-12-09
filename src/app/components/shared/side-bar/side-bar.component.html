@@ -36,6 +36,13 @@
       </a>
     </li>
 
+    <li>
+      <a routerLink="/" routerLinkActive="active">
+        <mat-icon>sort</mat-icon>
+        <span *ngIf="!isCollapsed">Levels</span>
+      </a>
+    </li>
+
     <!-- <li>
       <a (click)="toggleSortingMenu($event)">
         <mat-icon>sort</mat-icon>
