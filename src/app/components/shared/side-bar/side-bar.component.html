@@ -30,13 +30,13 @@
     </li>
 
     <li>
-      <a routerLink="/" routerLinkActive="active">
+      <a routerLink="/custom" routerLinkActive="active">
         <mat-icon>code</mat-icon>
         <span *ngIf="!isCollapsed">Custom Code</span>
       </a>
     </li>
 
-    <li>
+    <!-- <li>
       <a (click)="toggleSortingMenu($event)">
         <mat-icon>sort</mat-icon>
         <span *ngIf="!isCollapsed">Sorting Algorithms</span>
@@ -57,6 +57,6 @@
     </li>
     <div *ngIf="showSearchingDropdown" class="leftmargin">
         <li><a routerLink="/searching">Linear Search</a></li>
-    </div>
+    </div> -->
   </ul>
 </div>

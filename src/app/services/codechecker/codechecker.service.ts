@@ -16,10 +16,14 @@ export class CodeCheckerService {
   verifyCode(code: string,detectedLanguage): Observable<any> {
     return this.http.post<any>(`${this.apiBase}/api/code/verify`, { code: code, language: detectedLanguage });
   }
-   execute(code: string, input: any): Observable<any> {
+  execute(code: string, input: any): Observable<any> {
     return this.http.post(`${this.apiBase}/api/code/execute`, {
       code,
       input
     });
+  }
+  getComplexity(inputCode: string): Observable<any> {
+    const object = { code: inputCode, from: 'frontend' };
+    return this.http.post<any>(`${this.apiBase}/complexity`, object);
   }
 }
